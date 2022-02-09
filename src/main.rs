@@ -25,7 +25,7 @@ async fn main() {
         let rom = post.get_all_room().await;
         match rom {
             Ok(map) => {
-                for (id, room) in map.into_iter() {
+                for (_, room) in map.into_iter() {
                     println!("{:?}", &room);
                     let now_state = room.get_state();
                     if !now_state.eq(&last_state) {
@@ -140,13 +140,13 @@ impl PostData {
                     Ok(pack) => { package = pack; }
                     Err(e) => {
                         println!("{:?}", e);
-                        return Err("json error");
+                        return Err("json error")
                     }
                 };
             }
             Err(e) => {
                 println!("{:?}", e);
-                return Err("post error");
+                return Err("post error")
             }
         }
 
