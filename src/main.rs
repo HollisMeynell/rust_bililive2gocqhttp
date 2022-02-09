@@ -5,11 +5,12 @@ use std::ptr::null;
 use std::thread::{sleep, Thread};
 use std::time::Duration;
 use reqwest;
+use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 use serde::de::Unexpected::Option;
-use serde::ser::StdError;
 
 const UID: u64 = 4995808;
+// const UID: u64 = 73769122;//test
 const GROUP: u64 = 446316073;
 const API: &str = "http://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids";
 
@@ -21,7 +22,6 @@ async fn main() {
     let post = get_default();
     let mut last_state = RoomState::Close;
     loop {
-        sleep(Duration::new(63, 18));
         let rom = post.get_all_room().await;
         match rom {
             Ok(map) => {
@@ -33,11 +33,11 @@ async fn main() {
                         if last_state.eq(&RoomState::Open) {
                             println!("start!!!");
                             let data = get_open_message(&room);
-                            do_post(data);
+                            do_post(data).await;
                         } else {
                             println!("close!!!");
                             let data = get_close_message(&room);
-                            do_post(data);
+                            do_post(data).await;
                         }
                     }
                 }
@@ -46,6 +46,7 @@ async fn main() {
                 println!("{:?}", &e);
             }
         }
+        sleep(Duration::new(63, 18));
     }
 }
 
@@ -77,10 +78,19 @@ fn get_close_message(room: &Room) -> HashMap<String, String> {
 
 async fn do_post(data: HashMap<String, String>) {
     let client = reqwest::Client::new();
-    client.post(QQ_API)
+    println!("send");
+    let n = client.post(QQ_API)
         .json(&data)
-        .send()
-        .await;
+        .send();
+    match n.await {
+        Ok(_)=>{
+            println!("qq 送达");
+        },
+
+        Err(e) => {
+            println!("qq 发送失败{:?}",e);
+        }
+    }
 }
 
 #[derive(PartialEq)]
