@@ -1,10 +1,13 @@
 use std::collections::HashMap;
-use std::fmt::Error;
+use std::error;
+use std::process::id;
 use std::ptr::null;
 use std::thread::{sleep, Thread};
 use std::time::Duration;
 use reqwest;
 use serde::{Deserialize, Serialize};
+use serde::de::Unexpected::Option;
+use serde::ser::StdError;
 
 const UID: u64 = 4995808;
 const GROUP: u64 = 446316073;
@@ -19,20 +22,28 @@ async fn main() {
     let mut last_state = RoomState::Close;
     loop {
         sleep(Duration::new(63, 18));
-        let mut all_room = post.get_all_room().await;
-        let first_room = all_room.pop().unwrap();
-        let now_state = first_room.get_state();
-        println!("{:?}", &first_room);
-        if !now_state.eq(&last_state) {
-            last_state = now_state;
-            if last_state.eq(&RoomState::Open) {
-                println!("start!!!");
-                let data = get_open_message(&first_room);
-                do_post(data);
-            } else {
-                println!("close!!!");
-                let data = get_close_message(&first_room);
-                do_post(data);
+        let rom = post.get_all_room().await;
+        match rom {
+            Ok(map) => {
+                for (id, room) in map.into_iter() {
+                    println!("{:?}", &room);
+                    let now_state = room.get_state();
+                    if !now_state.eq(&last_state) {
+                        last_state = now_state;
+                        if last_state.eq(&RoomState::Open) {
+                            println!("start!!!");
+                            let data = get_open_message(&room);
+                            do_post(data);
+                        } else {
+                            println!("close!!!");
+                            let data = get_close_message(&room);
+                            do_post(data);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                println!("{:?}", &e);
             }
         }
     }
@@ -43,7 +54,7 @@ fn get_open_message(room: &Room) -> HashMap<String, String> {
     map.insert("group_id".to_string(), GROUP.to_string());
     let mut msg = String::new();
     let mid =
-    if room.short_id !=0 { room.short_id.to_string() }else { room.room_id.to_string() };
+        if room.short_id != 0 { room.short_id.to_string() } else { room.room_id.to_string() };
     msg = msg + &room.uname + " 爷爷开始直播了!" + "\n";
     msg = msg + &room.title + "-" + &room.area_name + "\n";
     msg = msg + "快戳我围观!->https://live.bilibili.com/" + &mid + "\n";
@@ -56,20 +67,22 @@ fn get_close_message(room: &Room) -> HashMap<String, String> {
     map.insert("group_id".to_string(), GROUP.to_string());
     let mut msg = String::new();
     let mid =
-        if room.short_id !=0 { room.short_id.to_string() }else { room.room_id.to_string() };
+        if room.short_id != 0 { room.short_id.to_string() } else { room.room_id.to_string() };
     msg = msg + &room.uname + " 爷爷的直播结束了>_<" + "\n";
     msg = msg + &room.title + "-" + &room.area_name + "\n";
     msg = msg + "快戳我关注直播间!->https://live.bilibili.com/" + &mid + "\n";
     map.insert("message".to_string(), msg.clone());
     return map;
 }
-async fn do_post(data:HashMap<String,String>){
+
+async fn do_post(data: HashMap<String, String>) {
     let client = reqwest::Client::new();
     client.post(QQ_API)
         .json(&data)
         .send()
         .await;
 }
+
 #[derive(PartialEq)]
 enum RoomState {
     Close,
@@ -102,7 +115,7 @@ struct PostData {
 }
 
 impl PostData {
-    async fn get_all_room(&self) -> Vec<Room> {
+    async fn get_all_room(&self) -> Result<(HashMap<String, Room>), &str> {
         let mut map = HashMap::new();
         map.insert("uids", [UID]);/*, 545149341, 14172231*/
 
@@ -110,22 +123,34 @@ impl PostData {
             .json(&map)
             .send()
             .await;
-        let res = res.unwrap();
-
-        let mut package = res.json::<Response>().await;
-        let mut package = package.unwrap();
-        let mut rooms = Vec::new();
-        if package.code == 0 {
-            for v in package.data.into_iter() {
-                rooms.push(Room::from(v.1));
+        let mut package;
+        match res {
+            Ok(res) => {
+                match res.json::<ResponseDate>().await {
+                    Ok(pack) => { package = pack; }
+                    Err(e) => {
+                        println!("{:?}", e);
+                        return Err("json error");
+                    }
+                };
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("post error");
             }
         }
-        return rooms;
+
+        if package.code == 0 {
+            let mut room_data = package.data;
+            Ok(room_data)
+        } else {
+            Err("biliapi request error")
+        }
     }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Response {
+struct ResponseDate {
     code: u8,
     message: String,
     msg: String,
@@ -168,3 +193,4 @@ fn get_default() -> PostData {
         client: reqwest::Client::new(),
     }
 }
+
