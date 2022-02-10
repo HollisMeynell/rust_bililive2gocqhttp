@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <script src="https://cdn.staticfile.org/jquery/3.4.0/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+  <script src="js/main.js"></script>
+  <link rel="stylesheet" href="css/index.css" type="text/css" charset="utf-8" />
+</head>
+
+<body>
+  <form method="get" onsubmit="return false">
+    <div id="role" class="center">
+      <div class="title">选择你的职业</div>
+      <div class="user_role" ad="left" roleid="1"></div>
+      <div class="user_role" ad="center" roleid="2"></div>
+      <div class="user_role" ad="right" roleid="3"></div>
+      <div class="role_info"></div>
+      <button type="button" id="to_role_in" onclick="toRoleIn()"></button>
+    </div>
+    <div id="register" class="center">
+      <div class="title" style="background-image: url(img/index/title_register.png)"></div>
+      <div class="in">
+        <div class="putin"><img class="text" src="img/index/username.png" /><input type="text" id="r_username"
+            name="r_username" flag="false" placeholder="输入用户名"></div>
+        <div class="putin" style="top: 90px"><img class="text" src="img/index/password.png" /><input type="password"
+            id="r_password" name="r_password" placeholder="输入密码"></div>
+        <div class="putin" style="top: 140px"><img class="text" src="img/index/c_password.png" /><input type="password"
+            id="c_password" name="c_password" placeholder="确认密码"></div>
+        <div class="button_div" style="top:180px">
+          <button type="submit" id="to_submit" name="to_submit"
+            style="background:transparent url(img/index/button_register.png);border: 0px solid transparent;outline: none;"
+            onclick="toSubmit()"></button>
+          <button type="button" id="to_back" name="to_back"
+            style="background:transparent url(img/index/button_back.png);border: 0px solid transparent;outline: none;"
+            onclick="toBack()"></button>
+        </div>
+      </div>
+    </div>
+    <div id="login" class="center fuxian">
+      <div class="title" style="background-image: url(img/index/title_login.png)"></div>
+      <div class="in">
+        <div class="putin"><img class="text" src="img/index/username.png" /><input type="text" id="username"
+            name="username" placeholder="输入用户名"></div>
+        <div class="putin" style="top: 110px"><img class="text" src="img/index/password.png" /><input type="password"
+            id="password" name="password" placeholder="输入密码"></div>
+        <div class="button_div">
+          <button type="submit" id="to_login" name="to_login" onclick="toLogin()"></button>
+          <button type="button" id="to_register" name="to_register"
+            style="background:transparent url(img/index/button_register.png);border: 0px solid transparent;outline: none;"
+            onclick="toRegister()"></button>
+        </div>
+      </div>
+    </div>
+  </form>
+</body>
+<audio id="bgm" src="bgm/Vision.mp3" controls="controls"  loop="true" hidden="true" autoplay></audio>
+</html>

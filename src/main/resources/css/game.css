@@ -1,0 +1,99 @@
+@charset "utf-8";
+*{margin:0; padding:0;  }
+img{border:none;}
+:root{
+  --main-bg:url(../img/game/bodybackground.png);
+  --map-bg:url(../img/game/background.png);
+  /*<!-- 踩过的 主角在的 未知的 怪 商店 下一层 -->*/
+  --passed-bg: url(../img/game/passed.png);
+  --passon-bg: url(../img/game/passon.png);
+  --passout-bg: url(../img/game/passout.png);
+  --enemy-bg: url(../img/game/enemy.png);
+  --store-bg: url(../img/game/store.png);
+  --next-bg: url(../img/game/next.png);
+}
+body{
+  background: url(../img/game/bodybackground.png) no-repeat  fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+#main {
+  width:1200px ;
+  height: 700px;
+  background-image: var(--map-bg);
+  border: 1px black solid;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 10%;
+  margin:0 auto;
+  background-size: cover;
+}
+#map{
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: 50px;
+  left: 50px;
+  background-size: cover;
+  background-color: rgba(0,0,0,0.5);
+}
+#map div{
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent;
+}
+#map [row='1']{
+  top: 0px;
+}
+#map [row='2']{
+  top: 150px;
+}
+#map [row='3']{
+  top: 300px;
+}
+#map [row='4']{
+  top: 450px;
+}
+#map [column='1']{
+  left: 0px;
+}
+#map [column='2']{
+  left: 150px;
+}
+#map [column='3']{
+  left: 300px;
+}
+#map [column='4']{
+  left: 450px;
+}
+/*<!-- 踩过的 主角在的 未知的 怪 商店 下一层 -->*/
+#map .map_passed{
+  background-size: cover;
+  background: var(--passed-bg);
+}
+#map .map_passon{
+  background-size: cover;
+  background: var(--passon-bg);
+}
+#map .map_passout{
+  background-size: cover;
+  background: var(--passout-bg);
+}
+#map .map_enemy{
+  background-size: cover;
+  background: var(--enemy-bg);
+}
+#map .map_store{
+  background-size: cover;
+  background: var(--store-bg);
+}
+#map .map_next{
+  background-size: cover;
+  background: var(--next-bg);
+}
