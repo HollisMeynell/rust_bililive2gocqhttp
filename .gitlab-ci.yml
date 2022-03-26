@@ -22,7 +22,7 @@ build-job:       # This job runs in the build stage, which runs first.
   image: rust
   before_script:
   script:
-    - cargo -V
+    - cargo build -release
     - echo "Compile complete."
 
 
