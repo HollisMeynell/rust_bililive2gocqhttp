@@ -182,7 +182,7 @@ fn get_open_message(room: &Room, group_id: &i64) -> HashMap<String, String> {
     msg = msg + &room.uname + " 爷爷开始直播了!" + "\n";
     msg = msg + &room.title + "-" + &room.area_name + "\n";
     msg = msg + "快戳我围观!->https://live.bilibili.com/" + &mid + "\n";
-    // msg = msg + "[CQ:image,url="+&room.keyframe+",type=show,id=40000]\n";
+    //msg = msg + "[CQ:image,url="+&room.keyframe+",type=show,id=40000]\n";
     map.insert("message".to_string(), msg.clone());
     return map;
 }
