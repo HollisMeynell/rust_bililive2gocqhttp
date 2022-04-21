@@ -8,6 +8,7 @@ pub mod postbili{
     use std::thread::sleep;
     use std::time::Duration;
     use futures::future::{join_all, ok, err};
+    use futures::join;
 
     const API: &str = "http://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids";
     const QQ_API: &str = "http://localhost:5700/send_group_msg";
@@ -60,7 +61,14 @@ pub mod postbili{
     }
     impl RunDate {
         fn init(&mut self, path: &str){
-            let file: File = File::open(path)?;
+            let file: File;
+            match File::open(path) {
+                Ok(f) => {file = f}
+                Err(_) => {
+                    println!("文件读取异常");
+                    return;
+                }
+            };
             let buffered: BufReader<File> = BufReader::new(file);
             let mut key: String = String::new();
             let mut new_line: String = String::new();
@@ -140,7 +148,6 @@ pub mod postbili{
                 let rom = get_all_room(&client, &date.LIVER_VEC).await;
                 match rom {
                     Ok(room_map) => {
-                        let mut works = Vec::new();
                         for (id, room) in room_map.into_iter() {
                             let room_id: i64;
                             if let Ok(i) = id.parse::<i64>() {
@@ -162,7 +169,7 @@ pub mod postbili{
                                     if let Some(groups_tmp) = live_map.get(&room_id) {
                                         for group_id_temp in groups_tmp {
                                             let data = get_open_message(&room, &group_id_temp);
-                                            works.push(do_post(data));
+                                            join!(do_post(data));
                                         }
                                     }
                                 } else {
@@ -170,13 +177,13 @@ pub mod postbili{
                                     if let Some(groups_tmp) = live_map.get(&room_id) {
                                         for group_id_temp in groups_tmp {
                                             let data = get_close_message(&room, &group_id_temp);
-                                            works.push(do_post(data));
+                                            join!(do_post(data));
                                         }
                                     }
                                 }
                             }
                         }
-                        join_all(works.iter());
+
                     },
                     Err(e) => {
                         println!("{}",e)
@@ -186,7 +193,7 @@ pub mod postbili{
             sleep(Duration::new(60, 00));
         }
     }
-    async fn get_all_room(client: &reqwest::Client, lever_all: &Vec<i64>) -> Result<(HashMap<String, Room>), &str> {
+    async fn get_all_room(client: &reqwest::Client, lever_all: &Vec<i64>) -> Result<(HashMap<String, Room>), String> {
         let mut map = HashMap::new();
         let mut uids: Vec<i64> = lever_all.clone();
 
@@ -205,13 +212,13 @@ pub mod postbili{
                     Ok(pack) => { package = pack; }
                     Err(e) => {
                         println!("{:?}", e);
-                        return Err("json error, change struct ResponseDate!");
+                        return Err("json error, change struct ResponseDate!".to_string());
                     }
                 };
             }
             Err(e) => {
                 println!("{:?}", e);
-                return Err("post error");
+                return Err("post error".to_string());
             }
         }
 
@@ -219,7 +226,7 @@ pub mod postbili{
             let mut room_data = package.data;
             Ok(room_data)
         } else {
-            Err("biliapi request error")
+            Err("biliapi request error".to_string())
         }
     }
     fn room_status_change(room_id: &i64, room_status: &RoomState, statue_map: &mut HashMap<i64, RoomState>) -> bool {
