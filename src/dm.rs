@@ -3,6 +3,7 @@ pub mod postbili{
     use std::fs::File;
     use std::future::Future;
     use std::io::{BufRead, BufReader};
+    use serde::{Deserialize, Serialize};
     use std::thread;
     use std::thread::sleep;
     use std::time::Duration;
@@ -129,22 +130,13 @@ pub mod postbili{
             return data;
         }
     }
-    pub async fn dt(date: &mut RunDate){
+    pub fn dt(date: &mut RunDate){
         if date.LIVER_VEC.len() == 0 {
             return;
         }
         let client = reqwest::Client::new();
         loop {
-            // match rom {
-            //     Ok(map) => {
-            //         println!("ok");
-            //         do_send_qq(&map).await;
-            //     }
-            //     Err(e) => {
-            //         println!("{:?}", &e);
-            //     }
-            // }
-            thread::spawn(||{
+            thread::spawn(|| async {
                 let rom = get_all_room(&client, &date.LIVER_VEC).await;
                 match rom {
                     Ok(room_map) => {
@@ -187,7 +179,7 @@ pub mod postbili{
                         join_all(works.iter());
                     },
                     Err(e) => {
-                        println!(e)
+                        println!("{}",e)
                     }
                 }
             });
