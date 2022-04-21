@@ -1,5 +1,6 @@
+mod dm;
 use std::collections::HashMap;
-use std::{error, io};
+use std::{error, io, thread};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::num::ParseIntError;
@@ -13,6 +14,12 @@ use reqwest;
 use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 use serde::de::Unexpected::{Map, Option};
+use dm::postbili::{dt, RunDate};
+
+fn main() {
+    let mut rundate = RunDate::get_instance("init.conf");
+    thread::spawn(|| dt(&mut rundate) ).join();
+}
 
 lazy_static! {
     static ref CONFIG_MAP: Mutex<HashMap<i64, Vec<i64>>> = Mutex::new(HashMap::new());
@@ -93,13 +100,17 @@ fn init_config(path: &str) -> Result<i8, io::Error> {
 const API: &str = "http://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids";
 const QQ_API: &str = "http://localhost:5700/send_group_msg";
 
-#[tokio::main]
-async fn main() {
+
+fn main2() {
     println!("start");
 
     if let Err(e) = init_config("init.conf") {
         println!("err = {:?}", e);
     }
+    let work = thread::spawn(start());
+    work.join().expect("ok la");
+}
+async fn start(){
     let client = reqwest::Client::new();
     loop {
         if let Ok(l) = LIVER_VEC.lock() {
@@ -120,14 +131,16 @@ async fn main() {
         sleep(Duration::new(63, 18));
     }
 }
-
 async fn do_send_qq(map: &HashMap<String, Room>) {
+    //遍历map
     for (id, room) in map.into_iter() {
         let room_id: i64;
         if let Ok(i) = id.parse::<i64>() {
             room_id = i.clone();
         } else { continue; }
+
         let now_state = room.get_state();
+
         if room_status_change(&room_id, &now_state) {
             room_status_set(&room_id, &now_state);
             if now_state.eq(&RoomState::Open) {
@@ -154,6 +167,7 @@ async fn do_send_qq(map: &HashMap<String, Room>) {
         }
     }
 }
+
 
 fn room_status_change(room_id: &i64, room_status: &RoomState) -> bool {
     if let Ok(mut map) = LIVE_STATUS_MAP.lock() {
@@ -225,24 +239,6 @@ enum RoomState {
     Open,
     Pass,
 }
-
-impl RoomState {
-    fn eq(&self, other: &RoomState) -> bool {
-        match (self, other) {
-            (RoomState::Close, RoomState::Close) => {
-                true
-            }
-            (RoomState::Open, RoomState::Open) => {
-                true
-            }
-            (RoomState::Pass, RoomState::Pass) => {
-                true
-            }
-            _ => { false }
-        }
-    }
-}
-
 
 
 async fn get_all_room(client: &reqwest::Client) -> Result<(HashMap<String, Room>), &str> {
