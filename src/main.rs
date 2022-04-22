@@ -18,5 +18,5 @@ use dm::postbili::{dt, RunDate};
 
 fn main() {
     let mut rundate = RunDate::get_instance("init.conf");
-    thread::spawn(|| dt(&mut rundate) ).join();
+    thread::spawn(|rundate: RunDate| dt(rundate) ).join();
 }
